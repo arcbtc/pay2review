@@ -1,9 +1,9 @@
 {
   "repos": [
     {
-      "id": "myextension",
-      "organisation": "lnbits",
-      "repository": "myextension"
+      "id": "p2r",
+      "organisation": "arcbtc",
+      "repository": "p2r"
     }
   ]
 }

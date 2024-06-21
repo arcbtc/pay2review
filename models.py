@@ -5,30 +5,54 @@ from typing import Optional, List
 from pydantic import BaseModel
 from fastapi import Request
 
-from lnbits.lnurl import encode as lnurl_encode
+
 from urllib.parse import urlparse
 
+# Main table model
 
-class CreateMyExtensionData(BaseModel):
+class CreateP2RData(BaseModel):
     wallet: Optional[str]
     name: Optional[str]
     total: Optional[int]
-    lnurlpayamount: Optional[int]
-    lnurlwithdrawamount: Optional[int]
-    ticker: Optional[int]
+    description: Optional[str]
+    review_length: Optional[int]
 
 
-class MyExtension(BaseModel):
+class P2R(BaseModel):
     id: str
     wallet: Optional[str]
     name: Optional[str]
     total: Optional[int]
-    lnurlpayamount: Optional[int]
-    lnurlwithdrawamount: Optional[int]
-    lnurlpay: Optional[str]
-    lnurlwithdraw: Optional[str]
-    ticker: Optional[int]
+    description: Optional[str]
+    review_length: Optional[int]
 
     @classmethod
-    def from_row(cls, row: Row) -> "MyExtension":
+    def from_row(cls, row: Row) -> "P2R":
+        return cls(**dict(row))
+
+# Review model
+
+class CreateReviewData(BaseModel):
+    wallet: Optional[str]
+    item_id: Optional[str]
+    p2r_id: Optional[str]
+    previous_id: Optional[str]
+    name: Optional[str]
+    review_int: Optional[int]
+    review_text: Optional[str]
+
+class Review(BaseModel):
+    id: str
+    wallet: Optional[str]
+    item_id: Optional[str]
+    p2r_id: Optional[str]
+    previous_id: Optional[str]
+    name: Optional[str]
+    review_int: Optional[int]
+    review_text: Optional[str]
+    review_date: Optional[int]
+    paid: Optional[bool]
+    
+    @classmethod
+    def from_row(cls, row: Row) -> "P2R":
         return cls(**dict(row))

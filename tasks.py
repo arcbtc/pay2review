@@ -7,7 +7,7 @@ from lnbits.core.services import create_invoice, websocket_updater
 from lnbits.helpers import get_current_extension_name
 from lnbits.tasks import register_invoice_listener
 
-from .crud import get_myextension, update_myextension
+from .crud import get_p2r, update_p2r
 
 
 #######################################
@@ -29,29 +29,20 @@ async def wait_for_paid_invoices():
 
 
 async def on_invoice_paid(payment: Payment) -> None:
-    if payment.extra.get("tag") != "MyExtension":
+    if payment.extra.get("tag") != "P2R":
         return
 
-    myextension_id = payment.extra.get("myextensionId")
-    myextension = await get_myextension(myextension_id)
+    p2r_id = payment.extra.get("p2rId")
+    p2r = await get_p2r(p2r_id)
 
-    # update something in the db
-    if payment.extra.get("lnurlwithdraw"):
-        total = myextension.total - payment.amount
-    else:
-        total = myextension.total + payment.amount
-    data_to_update = {"total": total}
-
-    await update_myextension(myextension_id=myextension_id, **data_to_update)
-
-    # here we could send some data to a websocket on wss://<your-lnbits>/api/v1/ws/<myextension_id>
+    # here we could send some data to a websocket on wss://<your-lnbits>/api/v1/ws/<p2r_id>
     # and then listen to it on the frontend, which we do with index.html connectWebocket()
 
     some_payment_data = {
-        "name": myextension.name,
+        "name": p2r.name,
         "amount": payment.amount,
         "fee": payment.fee,
         "checking_id": payment.checking_id,
     }
 
-    await websocket_updater(myextension_id, str(some_payment_data))
+    await websocket_updater(p2r_id, str(some_payment_data))

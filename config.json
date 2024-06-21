@@ -1,38 +1,32 @@
 {
-  "name": "MyExtension",
-  "short_description": "Minimal extension to build on",
-  "tile": "/myextension/static/image/myextension.png",
+  "name": "Pay2Review",
+  "short_description": "Charge for reviews",
+  "tile": "/p2r/static/image/p2r.png",
   "min_lnbits_version": "0.12.5",
   "contributors": [
-    {
-      "name": "Alan Bits",
-      "uri": "https://github.com/alanbits",
-      "role": "Lead dev"
-    },
     {
       "name": "Ben Arc",
       "uri": "https://github.com/arcbtc",
       "role": "Dev"
     },
     {
-      "name": "LNbits community",
-      "uri": "https://t.me/lnbits",
-      "role": "Emotional support"
+      "name": "Vlad Stan",
+      "uri": "https://github.com/alanbits",
+      "role": "Lead dev"
     }
   ],
   "images": [
     {
-      "uri": "https://raw.githubusercontent.com/lnbits/myextension/main/static/image/1.png",
-      "link": "https://www.youtube.com/embed/SkkIwO_X4i4?si=9JJh1Fc6GfHDZK6b"
+      "uri": "https://raw.githubusercontent.com/lnbits/pay2review/main/static/image/1.png"
     },
     {
-      "uri": "https://raw.githubusercontent.com/lnbits/myextension/main/static/image/2.png"
+      "uri": "https://raw.githubusercontent.com/lnbits/pay2review/main/static/image/2.png"
     },
     {
-      "uri": "https://raw.githubusercontent.com/lnbits/myextension/main/static/image/3.png"
+      "uri": "https://raw.githubusercontent.com/lnbits/pay2review/main/static/image/3.png"
     }
   ],
-  "description_md": "https://raw.githubusercontent.com/lnbits/myextension/main/description.md",
-  "terms_and_conditions_md": "https://raw.githubusercontent.com/lnbits/myextension/main/toc.md",
+  "description_md": "https://raw.githubusercontent.com/lnbits/pay2review/main/description.md",
+  "terms_and_conditions_md": "https://raw.githubusercontent.com/lnbits/pay2review/main/toc.md",
   "license": "MIT"
 }

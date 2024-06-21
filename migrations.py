@@ -8,29 +8,31 @@ async def m001_initial(db):
     """
     await db.execute(
         """
-        CREATE TABLE myextension.maintable (
+        CREATE TABLE p2r.maintable (
             id TEXT PRIMARY KEY,
             wallet TEXT NOT NULL,
             name TEXT NOT NULL,
-            total INTEGER DEFAULT 0,
-            lnurlpayamount INTEGER DEFAULT 0,
-            lnurlwithdrawamount INTEGER DEFAULT 0,
-            lnurlwithdraw TEXT,
-            lnurlpay TEXT
+            description TEXT,
+            review_length integer DEFAULT 0
         );
     """
     )
 
-
-# Here we add another field to the database
-
-
-async def m002_addtip_wallet(db):
+async def m002_add_reviews(db):
     """
     Add total to templates table
     """
     await db.execute(
         """
-        ALTER TABLE myextension.maintable ADD ticker INTEGER DEFAULT 1;
+        CREATE TABLE p2r.reviews (
+            id TEXT PRIMARY KEY,
+            item_id TEXT NOT NULL,
+            p2r_id TEXT NOT NULL,
+            previous_id TEXT,
+            name TEXT NOT NULL,
+            review_int INTEGER DEFAULT 0,
+            review_text TEXT,
+            paid BOOLEAN DEFAULT FALSE,
+            review_date DATETIME
     """
     )

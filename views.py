@@ -9,10 +9,10 @@ from lnbits.core.models import User
 from lnbits.decorators import check_user_exists
 from lnbits.settings import settings
 
-from . import myextension_ext, myextension_renderer
-from .crud import get_myextension
+from . import p2r_ext, p2r_renderer
+from .crud import get_p2r
 
-myex = Jinja2Templates(directory="myex")
+p2r = Jinja2Templates(directory="p2r")
 
 
 #######################################
@@ -23,30 +23,32 @@ myex = Jinja2Templates(directory="myex")
 # Backend admin page
 
 
-@myextension_ext.get("/", response_class=HTMLResponse)
+@p2r_ext.get("/", response_class=HTMLResponse)
 async def index(request: Request, user: User = Depends(check_user_exists)):
-    return myextension_renderer().TemplateResponse(
-        "myextension/index.html", {"request": request, "user": user.dict()}
+    return p2r_renderer().TemplateResponse(
+        "p2r/index.html", {"request": request, "user": user.dict()}
     )
 
 
 # Frontend shareable page
 
 
-@myextension_ext.get("/{myextension_id}")
-async def myextension(request: Request, myextension_id):
-    myextension = await get_myextension(myextension_id, request)
-    if not myextension:
+@p2r_ext.get("/{p2r_id}/{item_id}")
+async def p2r(request: Request, p2r_id, item_id):
+    p2r = await get_p2r(p2r_id, request)
+    if not p2r:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="MyExtension does not exist."
+            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
         )
-    return myextension_renderer().TemplateResponse(
-        "myextension/myextension.html",
+    return p2r_renderer().TemplateResponse(
+        "p2r/p2r.html",
         {
             "request": request,
-            "myextension_id": myextension_id,
-            "lnurlpay": myextension.lnurlpay,
-            "web_manifest": f"/myextension/manifest/{myextension_id}.webmanifest",
+            "p2r_id": p2r_id,
+            "item_id": item_id,
+            "p2r_name": p2r.name,
+            "p2r_description": p2r.description,
+            "web_manifest": f"/p2r/manifest/{p2r_id}.webmanifest",
         },
     )
 
@@ -54,17 +56,17 @@ async def myextension(request: Request, myextension_id):
 # Manifest for public page, customise or remove manifest completely
 
 
-@myextension_ext.get("/manifest/{myextension_id}.webmanifest")
-async def manifest(myextension_id: str):
-    myextension = await get_myextension(myextension_id)
-    if not myextension:
+@p2r_ext.get("/manifest/{p2r_id}.webmanifest")
+async def manifest(p2r_id: str):
+    p2r = await get_p2r(p2r_id)
+    if not p2r:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="MyExtension does not exist."
+            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
         )
 
     return {
         "short_name": settings.lnbits_site_title,
-        "name": myextension.name + " - " + settings.lnbits_site_title,
+        "name": p2r.name + " - " + settings.lnbits_site_title,
         "icons": [
             {
                 "src": settings.lnbits_custom_logo
@@ -74,18 +76,18 @@ async def manifest(myextension_id: str):
                 "sizes": "900x900",
             }
         ],
-        "start_url": "/myextension/" + myextension_id,
+        "start_url": "/p2r/" + p2r_id,
         "background_color": "#1F2234",
         "description": "Minimal extension to build on",
         "display": "standalone",
-        "scope": "/myextension/" + myextension_id,
+        "scope": "/p2r/" + p2r_id,
         "theme_color": "#1F2234",
         "shortcuts": [
             {
-                "name": myextension.name + " - " + settings.lnbits_site_title,
-                "short_name": myextension.name,
-                "description": myextension.name + " - " + settings.lnbits_site_title,
-                "url": "/myextension/" + myextension_id,
+                "name": p2r.name + " - " + settings.lnbits_site_title,
+                "short_name": p2r.name,
+                "description": p2r.name + " - " + settings.lnbits_site_title,
+                "url": "/p2r/" + p2r_id,
             }
         ],
     }

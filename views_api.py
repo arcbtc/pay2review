@@ -3,7 +3,6 @@ import json
 
 import httpx
 from fastapi import Depends, Query, Request
-from lnurl import decode as decode_lnurl
 from loguru import logger
 from starlette.exceptions import HTTPException
 
@@ -19,15 +18,15 @@ from lnbits.decorators import (
     require_invoice_key,
 )
 
-from . import myextension_ext
+from . import p2r_ext
 from .crud import (
-    create_myextension,
-    update_myextension,
-    delete_myextension,
-    get_myextension,
-    get_myextensions,
+    create_p2r,
+    update_p2r,
+    delete_p2r,
+    get_p2r,
+    get_p2rs,
 )
-from .models import CreateMyExtensionData
+from .models import CreateP2RData
 
 
 #######################################
@@ -37,8 +36,8 @@ from .models import CreateMyExtensionData
 ## Get all the records belonging to the user
 
 
-@myextension_ext.get("/api/v1/myex", status_code=HTTPStatus.OK)
-async def api_myextensions(
+@p2r_ext.get("/api/v1/p2r", status_code=HTTPStatus.OK)
+async def api_p2rs(
     req: Request,
     all_wallets: bool = Query(False),
     wallet: WalletTypeInfo = Depends(get_key_type),
@@ -48,87 +47,87 @@ async def api_myextensions(
         user = await get_user(wallet.wallet.user)
         wallet_ids = user.wallet_ids if user else []
     return [
-        myextension.dict() for myextension in await get_myextensions(wallet_ids, req)
+        p2r.dict() for p2r in await get_p2rs(wallet_ids, req)
     ]
 
 
 ## Get a single record
 
 
-@myextension_ext.get("/api/v1/myex/{myextension_id}", status_code=HTTPStatus.OK)
-async def api_myextension(
-    req: Request, myextension_id: str, WalletTypeInfo=Depends(get_key_type)
+@p2r_ext.get("/api/v1/p2r/{p2r_id}", status_code=HTTPStatus.OK)
+async def api_p2r(
+    req: Request, p2r_id: str, WalletTypeInfo=Depends(get_key_type)
 ):
-    myextension = await get_myextension(myextension_id, req)
-    if not myextension:
+    p2r = await get_p2r(p2r_id, req)
+    if not p2r:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="MyExtension does not exist."
+            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
         )
-    return myextension.dict()
+    return p2r.dict()
 
 
 ## update a record
 
 
-@myextension_ext.put("/api/v1/myex/{myextension_id}")
-async def api_myextension_update(
+@p2r_ext.put("/api/v1/p2r/{p2r_id}")
+async def api_p2r_update(
     req: Request,
-    data: CreateMyExtensionData,
-    myextension_id: str,
+    data: CreateP2RData,
+    p2r_id: str,
     wallet: WalletTypeInfo = Depends(get_key_type),
 ):
-    if not myextension_id:
+    if not p2r_id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="MyExtension does not exist."
+            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
         )
-    myextension = await get_myextension(myextension_id, req)
-    assert myextension, "MyExtension couldn't be retrieved"
+    p2r = await get_p2r(p2r_id, req)
+    assert p2r, "P2R couldn't be retrieved"
 
-    if wallet.wallet.id != myextension.wallet:
+    if wallet.wallet.id != p2r.wallet:
         raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail="Not your MyExtension."
+            status_code=HTTPStatus.FORBIDDEN, detail="Not your P2R."
         )
-    myextension = await update_myextension(
-        myextension_id=myextension_id, **data.dict(), req=req
+    p2r = await update_p2r(
+        p2r_id=p2r_id, **data.dict(), req=req
     )
-    return myextension.dict()
+    return p2r.dict()
 
 
 ## Create a new record
 
 
-@myextension_ext.post("/api/v1/myex", status_code=HTTPStatus.CREATED)
-async def api_myextension_create(
+@p2r_ext.post("/api/v1/p2r", status_code=HTTPStatus.CREATED)
+async def api_p2r_create(
     req: Request,
-    data: CreateMyExtensionData,
+    data: CreateP2RData,
     wallet: WalletTypeInfo = Depends(require_admin_key),
 ):
-    myextension = await create_myextension(
+    p2r = await create_p2r(
         wallet_id=wallet.wallet.id, data=data, req=req
     )
-    return myextension.dict()
+    return p2r.dict()
 
 
 ## Delete a record
 
 
-@myextension_ext.delete("/api/v1/myex/{myextension_id}")
-async def api_myextension_delete(
-    myextension_id: str, wallet: WalletTypeInfo = Depends(require_admin_key)
+@p2r_ext.delete("/api/v1/p2r/{p2r_id}")
+async def api_p2r_delete(
+    p2r_id: str, wallet: WalletTypeInfo = Depends(require_admin_key)
 ):
-    myextension = await get_myextension(myextension_id)
+    p2r = await get_p2r(p2r_id)
 
-    if not myextension:
+    if not p2r:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="MyExtension does not exist."
+            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
         )
 
-    if myextension.wallet != wallet.wallet.id:
+    if p2r.wallet != wallet.wallet.id:
         raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail="Not your MyExtension."
+            status_code=HTTPStatus.FORBIDDEN, detail="Not your P2R."
         )
 
-    await delete_myextension(myextension_id)
+    await delete_p2r(p2r_id)
     return "", HTTPStatus.NO_CONTENT
 
 
@@ -137,28 +136,28 @@ async def api_myextension_delete(
 ## This endpoint creates a payment
 
 
-@myextension_ext.post(
-    "/api/v1/myex/payment/{myextension_id}", status_code=HTTPStatus.CREATED
+@p2r_ext.post(
+    "/api/v1/p2r/payment/{p2r_id}", status_code=HTTPStatus.CREATED
 )
 async def api_tpos_create_invoice(
-    myextension_id: str, amount: int = Query(..., ge=1), memo: str = ""
+    p2r_id: str, amount: int = Query(..., ge=1), memo: str = ""
 ) -> dict:
-    myextension = await get_myextension(myextension_id)
+    p2r = await get_p2r(p2r_id)
 
-    if not myextension:
+    if not p2r:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="MyExtension does not exist."
+            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
         )
 
     # we create a payment and add some tags, so tasks.py can grab the payment once its paid
 
     try:
         payment_hash, payment_request = await create_invoice(
-            wallet_id=myextension.wallet,
+            wallet_id=p2r.wallet,
             amount=amount,
-            memo=f"{memo} to {myextension.name}" if memo else f"{myextension.name}",
+            memo=f"{memo} to {p2r.name}" if memo else f"{p2r.name}",
             extra={
-                "tag": "myextension",
+                "tag": "p2r",
                 "amount": amount,
             },
         )
