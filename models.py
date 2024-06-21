@@ -33,7 +33,6 @@ class P2R(BaseModel):
 # Review model
 
 class CreateReviewData(BaseModel):
-    wallet: Optional[str]
     item_id: Optional[str]
     p2r_id: Optional[str]
     previous_id: Optional[str]
@@ -43,7 +42,6 @@ class CreateReviewData(BaseModel):
 
 class Review(BaseModel):
     id: str
-    wallet: Optional[str]
     item_id: Optional[str]
     p2r_id: Optional[str]
     previous_id: Optional[str]
@@ -52,7 +50,7 @@ class Review(BaseModel):
     review_text: Optional[str]
     review_date: Optional[int]
     paid: Optional[bool]
-    
+
     @classmethod
     def from_row(cls, row: Row) -> "P2R":
         return cls(**dict(row))
