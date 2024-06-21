@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 from lnbits.helpers import urlsafe_short_hash
 
 from . import db
-from .models import CreateP2RData, P2R
+from .models import CreateP2RData, P2R, CreateReviewData, Review
 from loguru import logger
 from fastapi import Request
 import datetime

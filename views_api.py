@@ -26,7 +26,7 @@ from .crud import (
     get_p2r,
     get_p2rs,
 )
-from .models import CreateP2RData
+from .models import CreateP2RData, P2R, CreateReviewData, Review
 
 
 #######################################
