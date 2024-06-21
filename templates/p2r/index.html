@@ -39,9 +39,6 @@
                 <div v-else>${ col.value }</div>
               </q-td>
               <q-td auto-width>
-                <q-btn unelevated dense size="sm" icon="qr_code" :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
-                  class="q-mr-sm" @click="openUrlDialog(props.row.id)"></q-btn></q-td>
-              <q-td auto-width>
                 <q-btn unelevated dense size="sm" icon="launch" :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
                   type="a" :href="props.row.p2r" target="_blank"><q-tooltip>Open public
                     page</q-tooltip></q-btn></q-td>
