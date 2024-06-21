@@ -98,13 +98,14 @@ async def create_review(
             p2r_id,
             wallet_id,
             data.item_id,
+            data.p2r_id,
             data.previous_id,
             data.name,
             data.description,
             data.review_int,
             data.review_text,
             False,
-            datetime.datetime.now()
+            datetime.datetime.now(),
         ),
     )
     review = await get_review(review_id, req)
