@@ -33,6 +33,7 @@ async def m002_add_reviews(db):
             review_int INTEGER DEFAULT 0,
             review_text TEXT,
             paid BOOLEAN DEFAULT FALSE,
-            review_date DATETIME
+            review_date TEXT
+        );
     """
     )
