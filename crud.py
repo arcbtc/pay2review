@@ -103,7 +103,7 @@ async def create_review(
             data.description,
             data.review_int,
             data.review_text,
-            paid = False,
+            False,
             datetime.datetime.now()
         ),
     )
