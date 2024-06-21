@@ -95,7 +95,7 @@ async def create_review(
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            p2r_id,
+            review_id,
             wallet_id,
             data.item_id,
             data.p2r_id,
