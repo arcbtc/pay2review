@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 
 class CreateP2RData(BaseModel):
     wallet: Optional[str]
+    price: Optional[int]
     name: Optional[str]
     total: Optional[int]
     description: Optional[str]
@@ -21,6 +22,7 @@ class CreateP2RData(BaseModel):
 class P2R(BaseModel):
     id: str
     wallet: Optional[str]
+    price: Optional[int]
     name: Optional[str]
     total: Optional[int]
     description: Optional[str]

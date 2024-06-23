@@ -11,7 +11,7 @@ from lnbits.settings import settings
 
 from . import p2r_ext, p2r_renderer
 from .crud import get_p2r
-
+from loguru import logger
 p2r = Jinja2Templates(directory="p2r")
 
 
@@ -36,6 +36,7 @@ async def index(request: Request, user: User = Depends(check_user_exists)):
 @p2r_ext.get("/{p2r_id}/{item_id}")
 async def p2r(request: Request, p2r_id, item_id):
     p2r = await get_p2r(p2r_id, request)
+    logger.debug(p2r.review_length)
     if not p2r:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
@@ -48,6 +49,8 @@ async def p2r(request: Request, p2r_id, item_id):
             "item_id": item_id,
             "p2r_name": p2r.name,
             "p2r_description": p2r.description,
+            "p2r_price": p2r.price,
+            "review_length": p2r.review_length,
             "web_manifest": f"/p2r/manifest/{p2r_id}.webmanifest",
         },
     )

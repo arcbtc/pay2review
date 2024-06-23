@@ -25,6 +25,7 @@ from .crud import (
     delete_p2r,
     get_p2r,
     get_p2rs,
+    create_review,
 )
 from .models import CreateP2RData, P2R, CreateReviewData, Review
 
@@ -165,3 +166,24 @@ async def api_tpos_create_invoice(
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
 
     return {"payment_hash": payment_hash, "payment_request": payment_request}
+
+
+
+## Create a new review
+
+
+@p2r_ext.post("/api/v1/p2r/review", status_code=HTTPStatus.CREATED)
+async def api_review_create(
+    req: Request,
+    data: CreateReviewData,
+):
+    p2r = await get_p2r(data.p2r_id, req)
+    if not p2r:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail=f"P2R {data.p2r_id} does not exist."
+        )
+    logger.debug(data)
+    p2r = await create_review(
+        data=data, req=req
+    )
+    return p2r.dict()

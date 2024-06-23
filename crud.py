@@ -19,12 +19,13 @@ async def create_p2r(
     p2r_id = urlsafe_short_hash()
     await db.execute(
         """
-        INSERT INTO p2r.maintable (id, wallet, name, description, review_length)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO p2r.maintable (id, wallet, cost, name, description, review_length)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
         (
             p2r_id,
             wallet_id,
+            data.cost,
             data.name,
             data.description,
             data.review_length,
@@ -86,7 +87,7 @@ async def delete_p2r(p2r_id: str) -> None:
 #######################################
 
 async def create_review(
-    wallet_id: str, data: CreateP2RData, req: Request
+    data: CreateP2RData, req: Request
 ) -> Review:
     review_id = urlsafe_short_hash()
     await db.execute(

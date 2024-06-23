@@ -4,42 +4,34 @@
 
 {% extends "public.html" %} {% block page %}
 <div class="row q-col-gutter-md justify-center">
-  
+
   <!--/////////////////////////////////////////////////-->
   <!--/////////////////// FORM ////////////////////////-->
   <!--/////////////////////////////////////////////////-->
-    
-  <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
-      <q-form @submit="sendReviewData" class="q-gutter-md">
-      <h5> {% raw %} Leave a review for {{item_id}} {% endraw %}</h5>
-          <q-rating
-          filled
-          dense
-          size="3em"
-          v-model="formDialog.data.review_int"
-          max="5"
-        ></q-rating>
-        <q-input filled dense v-model.trim="formDialog.data.name" label="Name"
-          placeholder="your name"></q-input>
-        <q-input filled dense type="textarea" v-model.trim="formDialog.data.review_text" label="Review"
-          ></q-input>
-        <div class="row q-mt-lg">
-          <q-btn unelevated color="primary"
-            :disable="formDialog.data.name == null || formDialog.data.review_text == null || formDialog.data.review_length == null"
-            type="submit">Create P2R</q-btn>
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto">Cancel</q-btn>
-        </div>
-      </q-form>
-    </q-card>
 
-{% raw %}
+  <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+    <q-form @submit="sendReviewData" class="q-gutter-md">
+      <h5> {% raw %} Leave a review for "{{formDialog.data.item_id}}" {% endraw %}</h5>
+      <q-rating filled dense size="3em" v-model="formDialog.data.review_int" max="5"></q-rating>
+      <q-input filled dense v-model.trim="formDialog.data.name" label="Name" placeholder="your name"></q-input>
+      <q-input filled dense type="textarea" v-model.trim="formDialog.data.review_text" :label="'Review (max length ' + review_length + ' characters)'" :maxlength="review_length"></q-input>
+      <div class="row q-mt-lg">
+        <q-btn unelevated color="primary"
+          :disable="!formDialog.data.name || !formDialog.data.review_text || !formDialog.data.review_int"
+          type="submit">Create review</q-btn>
+        <q-btn v-close-popup flat color="grey" class="q-ml-auto">Cancel</q-btn>
+      </div>
+    </q-form>
+  </q-card>
+
+  {% raw %}
   <div class="col-12 col-sm-6 col-md-5 col-lg-4 q-gutter-y-md">
     <q-card>
       <q-card-section>
         <h6 class="text-subtitle1 q-mb-sm q-mt-none">{{p2r_name}}</h6>
         <p class="q-my-none">
-          {{p2r_description}} 
-        </q-card-section>
+          {{p2r_description}}
+      </q-card-section>
       <q-card-section class="q-pa-none">
         <q-separator></q-separator>
         <q-list> </q-list>
@@ -50,38 +42,41 @@
 {% endraw %}
 {% endblock %} {% block scripts %}
 <script>
-  Vue.component(VueQrcode.name, VueQrcode)
 
   new Vue({
     el: '#vue',
     mixins: [windowMixin],
     data: function () {
       return {
-        qrValue: '',
+        review_length: '{{review_length}}',
         p2r_name: '{{p2r_name}}',
-        p2r_id: '{{p2r_id}}',
-        item_id: '{{item_id}}',
         p2r_description: '{{p2r_description}}',
         formDialog: {
-          show: false,
           data: {
-            review_length: 350
+            p2r_id: '{{p2r_id}}',
+            item_id: '{{item_id}}',
+            pr2_price: '{{pr2_price}}',
           },
-          advanced: {}
         },
       }
     },
     created: function () {
-      // Will trigger payment reaction when payment received, sent from tasks.py
-      eventReactionWebocket(this.myExtensionID)
     },
     methods: {
-      sendReviewData(wallet, data) {
+      sendReviewData() {
+        console.log(this.formDialog.data)
         LNbits.api
-          .request('POST', '/p2r/api/v1/p2r', wallet.adminkey, data)
+          .request('POST', '/p2r/api/v1/p2r/review', null, this.formDialog.data)
           .then(response => {
-            this.p2r.push(mapP2R(response.data))
-            this.closeFormDialog()
+            
+            this.$q.notify({
+              message: 'Review created, thanks!',
+              color: 'positive',
+              icon: 'done'
+            })
+            this.formDialog.data.name = null
+            this.formDialog.data.review_text = null
+            this.formDialog.data.review_int = null
           })
           .catch(error => {
             LNbits.utils.notifyApiError(error)

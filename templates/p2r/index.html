@@ -40,7 +40,7 @@
               </q-td>
               <q-td auto-width>
                 <q-btn unelevated dense size="sm" icon="launch" :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
-                  type="a" :href="props.row.p2r" target="_blank"><q-tooltip>Open public
+                  @click="openLinkDialogue(props.row.p2r)"><q-tooltip>Open public
                     page</q-tooltip></q-btn></q-td>
 
               <q-td>
@@ -92,6 +92,8 @@
           placeholder="Name for your record"></q-input>
         <q-select filled dense emit-value v-model="formDialog.data.wallet" :options="g.user.walletOptions"
           label="Wallet *"></q-select>
+          <q-input filled dense type="number" v-model.trim="formDialog.data.price"
+          label="Price in sats to leave review"></q-input>
         <q-input filled dense type="text" v-model.trim="formDialog.data.description"
           label="Description"></q-input>
         <q-input filled dense type="number" v-model.trim="formDialog.data.review_length"
@@ -106,7 +108,26 @@
       </q-form>
     </q-card>
   </q-dialog>
-  
+
+
+  <!--/////////////////////////////////////////////////-->
+  <!--//////////////FORM DIALOG////////////////////////-->
+  <!--/////////////////////////////////////////////////-->
+
+  <q-dialog v-model="linkDialogue" position="top" @hide="closeFormDialog">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+      <q-form class="q-gutter-md">
+        <q-input filled dense v-model.trim="p2rlink.item_id" label="Item ID to review"
+          placeholder="lnurlp"></q-input>
+          <q-btn type="a" :href="p2rlink.link + '/' + p2rlink.item_id" unelevated color="primary"
+            :disable="p2rlink.item_id == null"
+            >Open review link</q-btn>
+          <q-btn v-close-popup flat color="grey" class="q-ml-auto">Cancel</q-btn>
+        </div>
+      </q-form>
+    </q-card>
+  </q-dialog>
+
 </div>
 {% endblock %} {% block scripts %} {{ window_vars(user) }}
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
@@ -148,6 +169,11 @@
             rowsPerPage: 10
           }
         },
+        p2rlink: {
+          link: "",
+          item_id: null
+        },
+        linkDialogue: false,
         formDialog: {
           show: false,
           data: {
@@ -167,6 +193,10 @@
     ///////////////////////////////////////////////////
 
     methods: {
+      openLinkDialogue(link) {
+        this.p2rlink.link = link
+        this.linkDialogue = true 
+      },
       closeFormDialog() {
         this.formDialog.show = false
         this.formDialog.data = {}
@@ -190,7 +220,8 @@
         const data = {
           name: this.formDialog.data.name,
           description: this.formDialog.data.description,
-          review_length: this.formDialog.data.review_length
+          review_length: this.formDialog.data.review_length,
+          cost: this.formDialog.data.cost
         }
         const wallet = _.findWhere(this.g.user.wallets, {
           id: this.formDialog.data.wallet
@@ -198,7 +229,8 @@
         if (this.formDialog.data.id) {
           data.id = this.formDialog.data.id
           data.wallet = wallet.id
-          data.total = this.formDialog.data.total
+          data.total = this.formDialog.data.total, 
+          data.price = this.formDialog.data.cost
           this.updateP2R(wallet, data)
         } else {
           this.createP2R(wallet, data)
@@ -294,6 +326,8 @@
       },
       closeformDialog() {
         this.formDialog.show = false
+        this.linkDialogue = false
+        this.p2rlink = {}
         this.formDialog.data = {}
       }
     },

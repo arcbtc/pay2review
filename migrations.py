@@ -11,6 +11,7 @@ async def m001_initial(db):
         CREATE TABLE p2r.maintable (
             id TEXT PRIMARY KEY,
             wallet TEXT NOT NULL,
+            price INTEGER default 10,
             name TEXT NOT NULL,
             description TEXT,
             review_length integer DEFAULT 0
