@@ -133,3 +133,11 @@ async def get_reviews(
     tempRows = [Review(**row) for row in rows]
 
     return tempRows
+
+async def set_review_paid(
+    review_id: str
+) -> Review:
+    await db.execute("UPDATE p2r.reviews SET paid = ? WHERE id = ?",
+        True, review_id,
+    )
+    return

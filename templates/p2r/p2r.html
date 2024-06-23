@@ -14,7 +14,8 @@
       <h5> {% raw %} Leave a review for "{{formDialog.data.item_id}}" {% endraw %}</h5>
       <q-rating filled dense size="3em" v-model="formDialog.data.review_int" max="5"></q-rating>
       <q-input filled dense v-model.trim="formDialog.data.name" label="Name" placeholder="your name"></q-input>
-      <q-input filled dense type="textarea" v-model.trim="formDialog.data.review_text" :label="'Review (max length ' + review_length + ' characters)'" :maxlength="review_length"></q-input>
+      <q-input filled dense type="textarea" v-model.trim="formDialog.data.review_text"
+        :label="'Review (max length ' + review_length + ' characters)'" :maxlength="review_length"></q-input>
       <div class="row q-mt-lg">
         <q-btn unelevated color="primary"
           :disable="!formDialog.data.name || !formDialog.data.review_text || !formDialog.data.review_int"
@@ -23,6 +24,21 @@
       </div>
     </q-form>
   </q-card>
+
+  <q-dialog v-model="showinvoice" position="top" @hide="closeFormDialog">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+      <a class="text-secondary" :href="'lightning:' + qrCode.toUpperCase()">
+        <q-responsive :ratio="1" class="q-mx-xl q-mb-md">
+          <qrcode :value="'lightning:' + qrCode.toUpperCase()" :options="{width: 800}" class="rounded-borders">
+          </qrcode>
+        </q-responsive>
+      </a>
+      <div class="row q-mt-lg">
+        <q-btn outline color="grey" @click="copyText(paymentReq)">Copy invoice</q-btn>
+        <q-btn @click="closeFormDialog" flat color="grey" class="q-ml-auto">Cancel</q-btn>
+      </div>
+    </q-card>
+  </q-dialog>
 
   {% raw %}
   <div class="col-12 col-sm-6 col-md-5 col-lg-4 q-gutter-y-md">
@@ -58,25 +74,56 @@
             pr2_price: '{{pr2_price}}',
           },
         },
+        showinvoice: false,
+        qrCode: "",
       }
     },
     created: function () {
     },
     methods: {
+      closeFormDialog() {
+        this.qrCode = ""
+        this.showinvoice = false
+      },
+      connectWebocket(review_id) {
+        self = this
+        if (location.protocol !== 'http:') {
+          localUrl =
+            'wss://' +
+            document.domain +
+            ':' +
+            location.port +
+            '/api/v1/ws/' +
+            review_id
+        } else {
+          localUrl =
+            'ws://' +
+            document.domain +
+            ':' +
+            location.port +
+            '/api/v1/ws/' +
+            review_id
+        }
+        this.connection = new WebSocket(localUrl)
+        this.connection.onmessage = function (e) {
+          this.$q.notify({
+            message: 'Review created, thanks!',
+            color: 'positive',
+            icon: 'done'
+          })
+        }
+      },
+
       sendReviewData() {
-        console.log(this.formDialog.data)
         LNbits.api
           .request('POST', '/p2r/api/v1/p2r/review', null, this.formDialog.data)
           .then(response => {
-            
-            this.$q.notify({
-              message: 'Review created, thanks!',
-              color: 'positive',
-              icon: 'done'
-            })
+            this.qrCode = response.payment_request
+            this.showinvoice = true
             this.formDialog.data.name = null
             this.formDialog.data.review_text = null
             this.formDialog.data.review_int = null
+            this.connectWebocket(response.review_id)
           })
           .catch(error => {
             LNbits.utils.notifyApiError(error)

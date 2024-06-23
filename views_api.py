@@ -132,43 +132,6 @@ async def api_p2r_delete(
     return "", HTTPStatus.NO_CONTENT
 
 
-# ANY OTHER ENDPOINTS YOU NEED
-
-## This endpoint creates a payment
-
-
-@p2r_ext.post(
-    "/api/v1/p2r/payment/{p2r_id}", status_code=HTTPStatus.CREATED
-)
-async def api_tpos_create_invoice(
-    p2r_id: str, amount: int = Query(..., ge=1), memo: str = ""
-) -> dict:
-    p2r = await get_p2r(p2r_id)
-
-    if not p2r:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
-        )
-
-    # we create a payment and add some tags, so tasks.py can grab the payment once its paid
-
-    try:
-        payment_hash, payment_request = await create_invoice(
-            wallet_id=p2r.wallet,
-            amount=amount,
-            memo=f"{memo} to {p2r.name}" if memo else f"{p2r.name}",
-            extra={
-                "tag": "p2r",
-                "amount": amount,
-            },
-        )
-    except Exception as e:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
-
-    return {"payment_hash": payment_hash, "payment_request": payment_request}
-
-
-
 ## Create a new review
 
 
@@ -182,8 +145,21 @@ async def api_review_create(
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail=f"P2R {data.p2r_id} does not exist."
         )
-    logger.debug(data)
-    p2r = await create_review(
+    review = await create_review(
         data=data, req=req
     )
-    return p2r.dict()
+    payment_hash, payment_request = await create_invoice(
+        wallet_id=p2r.wallet,
+        amount=int(p2r.price / 1000),
+        memo=data.p2r_id,
+        unhashed_description=f'[["text/plain", "{data.p2r_id}"]]'.encode(),
+        extra={
+            "tag": "p2r",
+            "reviewId": review.id,
+        },
+    )
+    if not payment_request:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail=f"Could not to create payment."
+        )
+    return {"payment_request": payment_request, "review_id": review.id}
