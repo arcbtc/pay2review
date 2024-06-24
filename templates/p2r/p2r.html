@@ -32,7 +32,7 @@
                 <h5 class="text-subtitle1 q-my-none">Reviews</h5>
               </div>
             </div>
-            <q-table grid dense flat :data="reviews" row-key="id" :columns="reviewsTable.columns"
+            <q-table dense flat :data="reviews" row-key="id" :columns="reviewsTable.columns"
               :pagination.sync="reviewsTable.pagination">
               <template v-slot:header="props">
                 <q-tr :props="props">
