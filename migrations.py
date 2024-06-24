@@ -33,7 +33,7 @@ async def m002_add_reviews(db):
             review_int INTEGER DEFAULT 0,
             review_text TEXT,
             paid BOOLEAN DEFAULT FALSE,
-            review_date TIMESTAMP NOT NULL DEFAULT {db.timestamp_now}
+            review_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
     """
     )

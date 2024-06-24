@@ -92,8 +92,8 @@ async def create_review(
     review_id = urlsafe_short_hash()
     await db.execute(
         """
-        INSERT INTO p2r.reviews (id, item_id, p2r_id, previous_id, name, review_int, review_text, paid, review_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO p2r.reviews (id, item_id, p2r_id, previous_id, name, review_int, review_text, paid)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             review_id,
@@ -104,7 +104,6 @@ async def create_review(
             data.review_int,
             data.review_text,
             False,
-            datetime.datetime.now(),
         ),
     )
     review = await get_review(review_id, req)
