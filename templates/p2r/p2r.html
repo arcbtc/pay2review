@@ -48,7 +48,7 @@
                     <q-rating v-if="col.name == 'review_int'" v-model="col.value" color="yellow" icon="star_border"
                       icon-selected="star"></q-rating>
                     <div v-else-if="col.name == 'review_text'"
-                      style="overflow-x: auto; white-space: nowrap; max-width:400px">
+                      style="overflow-x: auto; white-space: nowrap; max-width:200px">
                       ${ col.value }
                     </div>
                     <div v-else>${ col.value }</div>
