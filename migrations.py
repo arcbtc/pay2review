@@ -1,6 +1,5 @@
-# the migration file is where you build your database tables
-# If you create a new release for your extension , remeember the migration file is like a blockchain, never edit only add!
 
+from lnbits.db import Database
 
 async def m001_initial(db):
     """
@@ -34,7 +33,7 @@ async def m002_add_reviews(db):
             review_int INTEGER DEFAULT 0,
             review_text TEXT,
             paid BOOLEAN DEFAULT FALSE,
-            review_date TEXT
+            review_date TIMESTAMP NOT NULL DEFAULT {db.timestamp_now}
         );
     """
     )

@@ -21,7 +21,7 @@ async def on_invoice_paid(payment: Payment) -> None:
         return
     try:
         await set_review_paid(review_id=payment.extra.get("reviewId"))
-        await websocket_updater(review.id, "paid")
+        await websocket_updater(payment.extra.get("reviewId"), "paid")
     except Exception as e:
         pass
     

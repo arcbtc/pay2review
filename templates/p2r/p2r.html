@@ -1,17 +1,9 @@
-<!--/////////////////////////////////////////////////-->
-<!--////////////////USER FACING PAGE/////////////////-->
-<!--/////////////////////////////////////////////////-->
-
-{% extends "public.html" %} {% block page %}
+{% extends "public.html" %}  {% block page %}
 <div class="row q-col-gutter-md justify-center">
-
-  <!--/////////////////////////////////////////////////-->
-  <!--/////////////////// FORM ////////////////////////-->
-  <!--/////////////////////////////////////////////////-->
 
   <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
     <q-form @submit="sendReviewData" class="q-gutter-md">
-      <h5> {% raw %} Leave a review for "{{formDialog.data.item_id}}" {% endraw %}</h5>
+      <h5> ${formDialog.data.item_id}</h5>
       <q-rating filled dense size="3em" v-model="formDialog.data.review_int" max="5"></q-rating>
       <q-input filled dense v-model.trim="formDialog.data.name" label="Name" placeholder="your name"></q-input>
       <q-input filled dense type="textarea" v-model.trim="formDialog.data.review_text"
@@ -25,6 +17,54 @@
     </q-form>
   </q-card>
 
+  <div class="col-12 col-sm-6 col-md-5 col-lg-4 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <h6 class="text-subtitle1 q-mb-sm q-mt-none">${p2r_name}</h6>
+        <p class="q-my-none">
+          ${p2r_description}
+      </q-card-section>
+      <q-card-section class="q-pa-none">
+        <q-card>
+          <q-card-section>
+            <div class="row items-center no-wrap q-mb-md">
+              <div class="col">
+                <h5 class="text-subtitle1 q-my-none">Reviews</h5>
+              </div>
+            </div>
+            <q-table dense flat :data="reviews" row-key="id" :columns="reviewsTable.columns"
+              :pagination.sync="reviewsTable.pagination">
+              <template v-slot:header="props">
+                <q-tr :props="props">
+                  <q-th v-for="col in props.cols" :key="col.name" :props="props">
+                    ${ col.label }
+                  </q-th>
+                </q-tr>
+              </template>
+      
+              <template v-slot:body="props">
+                <q-tr :props="props">
+                  <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                    <q-rating
+                    v-if="col.name == 'review_int'"
+                    v-model="col.value"
+                    color="yellow"
+                    icon="star_border"
+                    icon-selected="star"
+                  ></q-rating>
+                    <div v-else>${ col.value }</div>
+                  </q-td>
+                </q-tr>
+              </template>
+      
+            </q-table>
+          </q-card-section>
+        </q-card>
+      </q-card-section>
+    </q-card>
+    
+  </div>
+
   <q-dialog v-model="showinvoice" position="top" @hide="closeFormDialog">
     <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
       <a class="text-secondary" :href="'lightning:' + qrCode.toUpperCase()">
@@ -34,36 +74,26 @@
         </q-responsive>
       </a>
       <div class="row q-mt-lg">
-        <q-btn outline color="grey" @click="copyText(paymentReq)">Copy invoice</q-btn>
+        <q-btn outline color="grey" @click="copyText(qrCode.toUpperCase())">Copy invoice</q-btn>
         <q-btn @click="closeFormDialog" flat color="grey" class="q-ml-auto">Cancel</q-btn>
       </div>
     </q-card>
   </q-dialog>
-
-  {% raw %}
-  <div class="col-12 col-sm-6 col-md-5 col-lg-4 q-gutter-y-md">
-    <q-card>
-      <q-card-section>
-        <h6 class="text-subtitle1 q-mb-sm q-mt-none">{{p2r_name}}</h6>
-        <p class="q-my-none">
-          {{p2r_description}}
-      </q-card-section>
-      <q-card-section class="q-pa-none">
-        <q-separator></q-separator>
-        <q-list> </q-list>
-      </q-card-section>
-    </q-card>
-  </div>
 </div>
-{% endraw %}
 {% endblock %} {% block scripts %}
 <script>
-
+  Vue.component(VueQrcode.name, VueQrcode)
+  const mapReviews = obj => {
+    obj.date = new Date(obj.date).toLocaleString()
+    return obj
+  }
   new Vue({
     el: '#vue',
     mixins: [windowMixin],
+    delimiters: ['${', '}'],
     data: function () {
       return {
+        reviews: [],
         review_length: '{{review_length}}',
         p2r_name: '{{p2r_name}}',
         p2r_description: '{{p2r_description}}',
@@ -76,6 +106,32 @@
         },
         showinvoice: false,
         qrCode: "",
+        reviewsTable: {
+          columns: [
+            { name: 'name', align: 'left', label: 'Name', field: 'name' },
+            {
+              name: 'review_int',
+              align: 'left',
+              label: 'Rating',
+              field: 'review_int'
+            },
+            {
+              name: 'review_text',
+              align: 'left',
+              label: 'Review',
+              field: 'review_text'
+            },
+            {
+              name: 'date',
+              align: 'left',
+              label: 'Date',
+              field: 'date'
+            }
+          ],
+          pagination: {
+            rowsPerPage: 10
+          }
+        },
       }
     },
     created: function () {
@@ -85,27 +141,12 @@
         this.qrCode = ""
         this.showinvoice = false
       },
-      connectWebocket(review_id) {
-        self = this
-        if (location.protocol !== 'http:') {
-          localUrl =
-            'wss://' +
-            document.domain +
-            ':' +
-            location.port +
-            '/api/v1/ws/' +
-            review_id
-        } else {
-          localUrl =
-            'ws://' +
-            document.domain +
-            ':' +
-            location.port +
-            '/api/v1/ws/' +
-            review_id
-        }
+      connectWebsocket(review_id) {
+        const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://'
+        const localUrl = `${protocol}${document.domain}:${location.port}/api/v1/ws/${review_id}`
         this.connection = new WebSocket(localUrl)
-        this.connection.onmessage = function (e) {
+        this.connection.onmessage = () => {
+          this.showinvoice = false
           this.$q.notify({
             message: 'Review created, thanks!',
             color: 'positive',
@@ -113,22 +154,30 @@
           })
         }
       },
-
       sendReviewData() {
-        LNbits.api
-          .request('POST', '/p2r/api/v1/p2r/review', null, this.formDialog.data)
+        LNbits.api.request('POST', '/p2r/api/v1/p2r/reviews', null, this.formDialog.data)
           .then(response => {
-            this.qrCode = response.payment_request
+            this.qrCode = response.data.payment_request
             this.showinvoice = true
+            // Reset form data
             this.formDialog.data.name = null
             this.formDialog.data.review_text = null
             this.formDialog.data.review_int = null
-            this.connectWebocket(response.review_id)
+            this.connectWebsocket(response.data.review_id)
           })
-          .catch(error => {
-            LNbits.utils.notifyApiError(error)
+          .catch(LNbits.utils.notifyApiError)
+      },
+      getReviews() {
+        self = this
+        LNbits.api.request('GET', `/p2r/api/v1/p2r/reviews/${self.formDialog.data.p2r_id}?item_id=${self.formDialog.data.item_id}`)
+          .then(response => {
+            self.reviews = response.data.map(obj => mapReviews(obj))
+            console.log(self.reviews)
           })
       },
+    },
+    created: function () {
+      this.getReviews()
     }
   })
 </script>

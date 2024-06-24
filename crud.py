@@ -19,13 +19,13 @@ async def create_p2r(
     p2r_id = urlsafe_short_hash()
     await db.execute(
         """
-        INSERT INTO p2r.maintable (id, wallet, cost, name, description, review_length)
+        INSERT INTO p2r.maintable (id, wallet, price, name, description, review_length)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
         (
             p2r_id,
             wallet_id,
-            data.cost,
+            data.price,
             data.name,
             data.description,
             data.review_length,
@@ -124,20 +124,21 @@ async def get_review(
     return rowAmended
 
 async def get_reviews(
-    p2r_id: str, req: Optional[Request] = None
+    p2r_id: str, item_id: str, req: Optional[Request] = None
 ) -> List[Review]:
-
-    rows = await db.fetchall(
-        "SELECT * FROM p2r.reviews WHERE wallet IN ?", (p2r_id,)
-    )
+    if item_id != None:
+        rows = await db.fetchall(
+            "SELECT * FROM p2r.reviews WHERE p2r_id = ? AND paid = ? AND item_id = ?", (p2r_id, True, item_id)
+        )
+    else:
+        rows = await db.fetchall(
+            "SELECT * FROM p2r.reviews WHERE p2r_id = ? AND paid = ?", (p2r_id, True)
+        )
     tempRows = [Review(**row) for row in rows]
-
     return tempRows
 
 async def set_review_paid(
     review_id: str
 ) -> Review:
-    await db.execute("UPDATE p2r.reviews SET paid = ? WHERE id = ?",
-        True, review_id,
-    )
+    await db.execute("UPDATE p2r.reviews SET paid = ? WHERE id = ?", (True, review_id))
     return

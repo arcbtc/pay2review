@@ -22,8 +22,7 @@
             <q-btn flat color="grey" @click="exportCSV">Export to CSV</q-btn>
           </div>
         </div>
-        <q-table dense flat :data="p2r" row-key="id" :columns="p2rTable.columns"
-          :pagination.sync="p2rTable.pagination">
+        <q-table dense flat :data="p2r" row-key="id" :columns="p2rTable.columns" :pagination.sync="p2rTable.pagination">
           <p2r v-slot:header="props">
             <q-tr :props="props">
               <q-th v-for="col in props.cols" :key="col.name" :props="props">
@@ -61,6 +60,73 @@
         </q-table>
       </q-card-section>
     </q-card>
+
+    <q-card>
+      <q-card-section>
+        <div class="row items-center no-wrap q-mb-md">
+          <div class="col">
+            <h5 class="text-subtitle1 q-my-none">Reviews</h5>
+          </div>
+          <div class="col-auto">
+            <q-btn flat color="grey" @click="exportCSV">Export to CSV</q-btn>
+          </div>
+        </div>
+        <q-table dense flat :data="reviewTypes" row-key="id" :columns="reviewTable.columns"
+          :pagination.sync="reviewTable.pagination">
+          <p2r v-slot:header="props">
+            <q-tr :props="props">
+              <q-th v-for="col in props.cols" :key="col.name" :props="props">
+                ${ col.label }
+              </q-th>
+            </q-tr>
+          </p2r>
+
+          <template v-slot:body="props">
+            <q-tr :props="props">
+              <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                <div>${ col.value }</div>
+              </q-td>
+
+              <q-td auto-width>
+                <q-btn size="sm" color="accent" round dense
+                  @click="handleClick(props.row.item_id, props.row.p2r_id, props)"
+                  :icon="props.expand ? 'expand_less' : 'expand_more'"><q-tooltip>Reviews</q-tooltip></q-btn>
+              </q-td>
+
+            </q-tr>
+            <q-tr v-show="props.expand" :props="props">
+              <q-td colspan="100%">
+                <div class="row items-center q-mb-lg">
+                  <div class="col-12">
+                    <div class="row items-center no-wrap q-mb-md">
+                      <div class="col-12">
+                        <q-table flat dense :data="reviewsfiltered" row-key="id" :columns="reviewsTable.columns"
+                          :pagination.sync="reviewsTable.pagination">
+                          <template v-slot:body="propss">
+                            <q-tr :props="propss">
+                              <q-td v-for="col in propss.cols" :key="col.name" :props="propss">
+                                
+                                <q-rating
+                                v-if="col.name == 'review_int'"
+                                v-model="col.value"
+                                color="yellow"
+                                icon="star_border"
+                                icon-selected="star"
+                              ></q-rating>
+                                <div v-else>${ col.value }</div>
+                              </q-td>
+                            </q-tr>
+                          </template>
+                        </q-table>
+                      </div>
+                    </div>
+              </q-td>
+            </q-tr>
+          </template>
+
+        </q-table>
+      </q-card-section>
+    </q-card>
   </div>
 
   <div class="col-12 col-md-4 col-lg-5 q-gutter-y-md">
@@ -81,10 +147,6 @@
     </q-card>
   </div>
 
-  <!--/////////////////////////////////////////////////-->
-  <!--//////////////FORM DIALOG////////////////////////-->
-  <!--/////////////////////////////////////////////////-->
-
   <q-dialog v-model="formDialog.show" position="top" @hide="closeFormDialog">
     <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
       <q-form @submit="sendP2RData" class="q-gutter-md">
@@ -92,10 +154,9 @@
           placeholder="Name for your record"></q-input>
         <q-select filled dense emit-value v-model="formDialog.data.wallet" :options="g.user.walletOptions"
           label="Wallet *"></q-select>
-          <q-input filled dense type="number" v-model.trim="formDialog.data.price"
+        <q-input filled dense type="number" v-model.trim="formDialog.data.price"
           label="Price in sats to leave review"></q-input>
-        <q-input filled dense type="text" v-model.trim="formDialog.data.description"
-          label="Description"></q-input>
+        <q-input filled dense type="text" v-model.trim="formDialog.data.description" label="Description"></q-input>
         <q-input filled dense type="number" v-model.trim="formDialog.data.review_length"
           label="Character limit for reviews"></q-input>
         <div class="row q-mt-lg">
@@ -109,34 +170,41 @@
     </q-card>
   </q-dialog>
 
-
-  <!--/////////////////////////////////////////////////-->
-  <!--//////////////FORM DIALOG////////////////////////-->
-  <!--/////////////////////////////////////////////////-->
-
   <q-dialog v-model="linkDialogue" position="top" @hide="closeFormDialog">
     <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
       <q-form class="q-gutter-md">
-        <q-input filled dense v-model.trim="p2rlink.item_id" label="Item ID to review"
-          placeholder="lnurlp"></q-input>
-          <q-btn type="a" :href="p2rlink.link + '/' + p2rlink.item_id" unelevated color="primary"
-            :disable="p2rlink.item_id == null"
-            >Open review link</q-btn>
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto">Cancel</q-btn>
-        </div>
-      </q-form>
-    </q-card>
-  </q-dialog>
+        <q-input filled dense v-model.trim="p2rlink.item_id" label="Item ID to review" placeholder="lnurlp"></q-input>
+        <q-btn type="a" :href="p2rlink.link + '/' + p2rlink.item_id" unelevated color="primary"
+          :disable="p2rlink.item_id == null">Open review link</q-btn>
+        <q-btn v-close-popup flat color="grey" class="q-ml-auto">Cancel</q-btn>
+</div>
+</q-form>
+</q-card>
+</q-dialog>
 
 </div>
 {% endblock %} {% block scripts %} {{ window_vars(user) }}
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
 <script>
-
   ///////////////////////////////////////////////////
   //////////an object we can update with data////////
   ///////////////////////////////////////////////////
   const mapP2R = obj => {
+    obj.date = Quasar.utils.date.formatDate(
+      new Date(obj.time * 1000),
+      'YYYY-MM-DD HH:mm'
+    )
+    obj.p2r = ['/p2r/', obj.id].join('')
+    return obj
+  }
+  const mapReviews = obj => {
+    obj.date = Quasar.utils.date.formatDate(
+      new Date(obj.time * 1000),
+      'YYYY-MM-DD HH:mm'
+    )
+    obj.p2r = ['/p2r/', obj.id].join('')
+    return obj
+  }
+  const mapReviewTypes = obj => {
     obj.date = Quasar.utils.date.formatDate(
       new Date(obj.time * 1000),
       'YYYY-MM-DD HH:mm'
@@ -153,6 +221,9 @@
         invoiceAmount: 10,
         qrValue: 'lnurlpay',
         p2r: [],
+        reviews: [],
+        reviewTypes: [],
+        reviewsfiltered: [],
         p2rTable: {
           columns: [
             { name: 'id', align: 'left', label: 'ID', field: 'id' },
@@ -163,7 +234,47 @@
               label: 'Wallet',
               field: 'wallet'
             },
-            { name: 'review_length', align: 'left', label: 'Review Length', field: 'review_length' },
+            { name: 'review_length', align: 'left', label: 'Review Length', field: 'review_length' }
+          ],
+          pagination: {
+            rowsPerPage: 10
+          }
+        },
+        reviewTable: {
+          columns: [
+            { name: 'item_id', align: 'left', label: 'Item', field: 'item_id' },
+            {
+              name: 'p2r_id',
+              align: 'left',
+              label: 'pay2review ID',
+              field: 'p2r_id'
+            }
+          ],
+          pagination: {
+            rowsPerPage: 10
+          }
+        },
+        reviewsTable: {
+          columns: [
+            { name: 'name', align: 'left', label: '', field: 'name' },
+            {
+              name: 'review_int',
+              align: 'left',
+              label: '',
+              field: 'review_int'
+            },
+            {
+              name: 'review_text',
+              align: 'left',
+              label: '',
+              field: 'review_text'
+            },
+            {
+              name: 'date',
+              align: 'left',
+              label: '',
+              field: 'date'
+            }
           ],
           pagination: {
             rowsPerPage: 10
@@ -195,133 +306,91 @@
     methods: {
       openLinkDialogue(link) {
         this.p2rlink.link = link
-        this.linkDialogue = true 
+        this.linkDialogue = true
       },
       closeFormDialog() {
         this.formDialog.show = false
         this.formDialog.data = {}
       },
-      getP2Rs: function () {
-        var self = this
-
-        LNbits.api
-          .request(
-            'GET',
-            '/p2r/api/v1/p2r?all_wallets=true',
-            this.g.user.wallets[0].inkey
-          )
-          .then(function (response) {
-            self.p2r = response.data.map(function (obj) {
-              return mapP2R(obj)
-            })
+      getP2Rs() {
+        LNbits.api.request('GET', '/p2r/api/v1/p2r?all_wallets=true', this.g.user.wallets[0].inkey)
+          .then(response => {
+            this.p2r = response.data.map(obj => mapP2R(obj))
+            response.data.forEach(p2r => this.getReviews(p2r.id))
+          })
+      },
+      getReviews(p2r_id) {
+        LNbits.api.request('GET', `/p2r/api/v1/p2r/reviews/${p2r_id}`, null)
+          .then(response => {
+            console.log(response)
+            this.reviews = response.data.map(obj => mapReviews(obj))
+            this.reviewTypes = Object.values(this.reviews.reduce((acc, { item_id, p2r_id }) => {
+              const key = `${item_id}-${p2r_id}`
+              if (!acc[key]) acc[key] = { item_id, p2r_id }
+              return acc
+            }, {}))
+            this.reviewTypes = this.reviewTypes.map((reviewType, index) => ({
+              ...mapReviewTypes(reviewType),
+              id: index
+            }))
           })
       },
       sendP2RData() {
-        const data = {
-          name: this.formDialog.data.name,
-          description: this.formDialog.data.description,
-          review_length: this.formDialog.data.review_length,
-          cost: this.formDialog.data.cost
-        }
-        const wallet = _.findWhere(this.g.user.wallets, {
-          id: this.formDialog.data.wallet
-        })
+        const data = { ...this.formDialog.data, wallet: _.findWhere(this.g.user.wallets, { id: this.formDialog.data.wallet }).id }
         if (this.formDialog.data.id) {
-          data.id = this.formDialog.data.id
-          data.wallet = wallet.id
-          data.total = this.formDialog.data.total, 
-          data.price = this.formDialog.data.cost
-          this.updateP2R(wallet, data)
+          this.updateP2R(data.wallet, data)
         } else {
-          this.createP2R(wallet, data)
+          this.createP2R(data.wallet, data)
         }
       },
       updateP2RForm(tempId) {
         const p2r = _.findWhere(this.p2r, { id: tempId })
-        this.formDialog.data = {
-          ...p2r
-        }
-        if (this.formDialog.data.tip_wallet != '') {
-          this.formDialog.advanced.tips = true
-        }
-        if (this.formDialog.data.withdrawlimit >= 1) {
-          this.formDialog.advanced.otc = true
-        }
+        this.formDialog.data = { ...p2r }
+        this.formDialog.advanced.tips = this.formDialog.data.tip_wallet !== ''
+        this.formDialog.advanced.otc = this.formDialog.data.withdrawlimit >= 1
         this.formDialog.show = true
       },
       createP2R(wallet, data) {
-        LNbits.api
-          .request('POST', '/p2r/api/v1/p2r', wallet.adminkey, data)
+        LNbits.api.request('POST', '/p2r/api/v1/p2r', wallet.adminkey, data)
           .then(response => {
             this.p2r.push(mapP2R(response.data))
             this.closeFormDialog()
           })
-          .catch(error => {
-            LNbits.utils.notifyApiError(error)
-          })
+          .catch(LNbits.utils.notifyApiError)
       },
       updateP2R(wallet, data) {
-        LNbits.api
-          .request(
-            'PUT',
-            `/p2r/api/v1/p2r/${data.id}`,
-            wallet.adminkey,
-            data
-          )
+        LNbits.api.request('PUT', `/p2r/api/v1/p2r/${data.id}`, wallet.adminkey, data)
           .then(response => {
-            this.p2r = _.reject(this.p2r, obj => {
-              return obj.id == data.id
-            })
-            this.p2r.push(mapP2R(response.data))
+            this.p2r = this.p2r.filter(obj => obj.id !== data.id).concat(mapP2R(response.data))
             this.closeFormDialog()
           })
-          .catch(error => {
-            LNbits.utils.notifyApiError(error)
+          .catch(LNbits.utils.notifyApiError)
+      },
+      deleteP2R(tempId) {
+        LNbits.utils.confirmDialog('Are you sure you want to delete this P2R?')
+          .onOk(() => {
+            const walletKey = _.findWhere(this.g.user.wallets, { id: _.findWhere(this.p2r, { id: tempId }).wallet }).adminkey
+            LNbits.api.request('DELETE', `/p2r/api/v1/p2r/${tempId}`, walletKey)
+              .then(() => {
+                this.p2r = this.p2r.filter(obj => obj.id !== tempId)
+              })
+              .catch(LNbits.utils.notifyApiError)
           })
       },
-      deleteP2R: function (tempId) {
-        var self = this
-        var p2r = _.findWhere(this.p2r, { id: tempId })
-
-        LNbits.utils
-          .confirmDialog('Are you sure you want to delete this P2R?')
-          .onOk(function () {
-            LNbits.api
-              .request(
-                'DELETE',
-                '/p2r/api/v1/p2r/' + tempId,
-                _.findWhere(self.g.user.wallets, { id: p2r.wallet }).adminkey
-              )
-              .then(function (response) {
-                self.p2r = _.reject(self.p2r, function (obj) {
-                  return obj.id == tempId
-                })
-              })
-              .catch(function (error) {
-                LNbits.utils.notifyApiError(error)
-              })
-          })
-      },
-      exportCSV: function () {
+      exportCSV() {
         LNbits.utils.exportCSV(this.p2rTable.columns, this.p2r)
       },
       itemsArray(tempId) {
-        const p2r = _.findWhere(this.p2r, { id: tempId })
-        return [...p2r.itemsMap.values()]
+        return [..._.findWhere(this.p2r, { id: tempId }).itemsMap.values()]
       },
       openformDialog(id) {
         const [tempId, itemId] = id.split(':')
         const p2r = _.findWhere(this.p2r, { id: tempId })
         if (itemId) {
-          const item = p2r.itemsMap.get(id)
-          this.formDialog.data = {
-            ...item,
-            p2r: tempId
-          }
+          this.formDialog.data = { ...p2r.itemsMap.get(id), p2r: tempId }
         } else {
-          this.formDialog.data.p2r = tempId
+          this.formDialog.data = { p2r: tempId, currency: p2r.currency }
         }
-        this.formDialog.data.currency = p2r.currency
         this.formDialog.show = true
       },
       closeformDialog() {
@@ -329,7 +398,14 @@
         this.linkDialogue = false
         this.p2rlink = {}
         this.formDialog.data = {}
-      }
+      },
+      handleClick(item_id, p2r_id, props) {
+        this.getrelevantreviews(p2r_id, item_id)
+        props.expand = !props.expand
+      },
+      getrelevantreviews(p2r_id, item_id) {
+        this.reviewsfiltered = this.reviews.filter(review => review.p2r_id === p2r_id && review.item_id === item_id)
+      },
     },
 
     ///////////////////////////////////////////////////

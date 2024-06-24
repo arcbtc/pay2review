@@ -26,9 +26,10 @@ from .crud import (
     get_p2r,
     get_p2rs,
     create_review,
+    get_reviews,
 )
 from .models import CreateP2RData, P2R, CreateReviewData, Review
-
+from typing import Optional
 
 #######################################
 ##### ADD YOUR API ENDPOINTS HERE #####
@@ -135,7 +136,7 @@ async def api_p2r_delete(
 ## Create a new review
 
 
-@p2r_ext.post("/api/v1/p2r/review", status_code=HTTPStatus.CREATED)
+@p2r_ext.post("/api/v1/p2r/reviews", status_code=HTTPStatus.CREATED)
 async def api_review_create(
     req: Request,
     data: CreateReviewData,
@@ -150,7 +151,7 @@ async def api_review_create(
     )
     payment_hash, payment_request = await create_invoice(
         wallet_id=p2r.wallet,
-        amount=int(p2r.price / 1000),
+        amount=p2r.price,
         memo=data.p2r_id,
         unhashed_description=f'[["text/plain", "{data.p2r_id}"]]'.encode(),
         extra={
@@ -163,3 +164,19 @@ async def api_review_create(
             status_code=HTTPStatus.NOT_FOUND, detail=f"Could not to create payment."
         )
     return {"payment_request": payment_request, "review_id": review.id}
+
+
+@p2r_ext.get("/api/v1/p2r/reviews/{p2r_id}", status_code=HTTPStatus.OK)
+async def api_reviews(
+    req: Request,
+    p2r_id: str,
+    item_id: Optional[str] = None,
+):
+    p2r = await get_p2r(p2r_id, req)
+    if not p2r:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="P2R does not exist."
+        )
+    return [
+        review.dict() for review in await get_reviews(p2r_id, item_id, req)
+    ]
