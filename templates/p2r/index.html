@@ -104,15 +104,14 @@
                           :pagination.sync="reviewsTable.pagination">
                           <template v-slot:body="propss">
                             <q-tr :props="propss">
-                              <q-td v-for="col in propss.cols" :key="col.name" :props="propss">
-                                
-                                <q-rating
-                                v-if="col.name == 'review_int'"
-                                v-model="col.value"
-                                color="yellow"
-                                icon="star_border"
-                                icon-selected="star"
-                              ></q-rating>
+                              <q-td wrap-cells v-for="col in propss.cols" :key="col.name" :props="propss">
+
+                                <q-rating v-if="col.name == 'review_int'" v-model="col.value" color="yellow"
+                                  icon="star_border" icon-selected="star"></q-rating>
+                                <div v-else-if="col.name == 'review_text'"
+                                  style="overflow-x: auto; white-space: nowrap; max-width:400px">
+                                  ${ col.value }
+                                </div>
                                 <div v-else>${ col.value }</div>
                               </q-td>
                             </q-tr>
@@ -324,7 +323,7 @@
         const wallet = _.findWhere(this.g.user.wallets, {
           id: this.formDialog.data.wallet
         })
-        const data = { ...this.formDialog.data, wallet: wallet.id}
+        const data = { ...this.formDialog.data, wallet: wallet.id }
         if (this.formDialog.data.id) {
           this.updateP2R(wallet, data)
         } else {

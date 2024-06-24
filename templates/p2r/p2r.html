@@ -1,4 +1,4 @@
-{% extends "public.html" %}  {% block page %}
+{% extends "public.html" %} {% block page %}
 <div class="row q-col-gutter-md justify-center">
 
   <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
@@ -32,7 +32,7 @@
                 <h5 class="text-subtitle1 q-my-none">Reviews</h5>
               </div>
             </div>
-            <q-table dense flat :data="reviews" row-key="id" :columns="reviewsTable.columns"
+            <q-table grid dense flat :data="reviews" row-key="id" :columns="reviewsTable.columns"
               :pagination.sync="reviewsTable.pagination">
               <template v-slot:header="props">
                 <q-tr :props="props">
@@ -41,28 +41,28 @@
                   </q-th>
                 </q-tr>
               </template>
-      
+
               <template v-slot:body="props">
                 <q-tr :props="props">
                   <q-td v-for="col in props.cols" :key="col.name" :props="props">
-                    <q-rating
-                    v-if="col.name == 'review_int'"
-                    v-model="col.value"
-                    color="yellow"
-                    icon="star_border"
-                    icon-selected="star"
-                  ></q-rating>
+                    <q-rating v-if="col.name == 'review_int'" v-model="col.value" color="yellow" icon="star_border"
+                      icon-selected="star"></q-rating>
+                    <div v-else-if="col.name == 'review_text'"
+                      style="overflow-x: auto; white-space: nowrap; max-width:400px">
+                      ${ col.value }
+                    </div>
                     <div v-else>${ col.value }</div>
+
                   </q-td>
                 </q-tr>
               </template>
-      
+
             </q-table>
           </q-card-section>
         </q-card>
       </q-card-section>
     </q-card>
-    
+
   </div>
 
   <q-dialog v-model="showinvoice" position="top" @hide="closeFormDialog">
