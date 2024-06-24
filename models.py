@@ -50,7 +50,7 @@ class Review(BaseModel):
     name: Optional[str]
     review_int: Optional[int]
     review_text: Optional[str]
-    review_date: Optional[int]
+    review_date: Optional[str]
     paid: Optional[bool]
 
     @classmethod

@@ -39,7 +39,7 @@
               </q-td>
               <q-td auto-width>
                 <q-btn unelevated dense size="sm" icon="launch" :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
-                  @click="openLinkDialogue(props.row.p2r)"><q-tooltip>Open public
+                  @click="openLinkDialogue(props.row.id)"><q-tooltip>Open public
                     page</q-tooltip></q-btn></q-td>
 
               <q-td>
@@ -189,27 +189,12 @@
   //////////an object we can update with data////////
   ///////////////////////////////////////////////////
   const mapP2R = obj => {
-    obj.date = Quasar.utils.date.formatDate(
-      new Date(obj.time * 1000),
-      'YYYY-MM-DD HH:mm'
-    )
-    obj.p2r = ['/p2r/', obj.id].join('')
     return obj
   }
   const mapReviews = obj => {
-    obj.date = Quasar.utils.date.formatDate(
-      new Date(obj.time * 1000),
-      'YYYY-MM-DD HH:mm'
-    )
-    obj.p2r = ['/p2r/', obj.id].join('')
     return obj
   }
   const mapReviewTypes = obj => {
-    obj.date = Quasar.utils.date.formatDate(
-      new Date(obj.time * 1000),
-      'YYYY-MM-DD HH:mm'
-    )
-    obj.p2r = ['/p2r/', obj.id].join('')
     return obj
   }
   new Vue({
@@ -270,10 +255,10 @@
               field: 'review_text'
             },
             {
-              name: 'date',
+              name: 'review_date',
               align: 'left',
               label: '',
-              field: 'date'
+              field: 'review_date'
             }
           ],
           pagination: {
@@ -336,11 +321,14 @@
           })
       },
       sendP2RData() {
-        const data = { ...this.formDialog.data, wallet: _.findWhere(this.g.user.wallets, { id: this.formDialog.data.wallet }).id }
+        const wallet = _.findWhere(this.g.user.wallets, {
+          id: this.formDialog.data.wallet
+        })
+        const data = { ...this.formDialog.data, wallet: wallet.id}
         if (this.formDialog.data.id) {
-          this.updateP2R(data.wallet, data)
+          this.updateP2R(wallet, data)
         } else {
-          this.createP2R(data.wallet, data)
+          this.createP2R(wallet, data)
         }
       },
       updateP2RForm(tempId) {

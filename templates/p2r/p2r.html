@@ -84,7 +84,6 @@
 <script>
   Vue.component(VueQrcode.name, VueQrcode)
   const mapReviews = obj => {
-    obj.date = new Date(obj.date).toLocaleString()
     return obj
   }
   new Vue({
@@ -122,10 +121,10 @@
               field: 'review_text'
             },
             {
-              name: 'date',
+              name: 'review_date',
               align: 'left',
               label: 'Date',
-              field: 'date'
+              field: 'review_date'
             }
           ],
           pagination: {
